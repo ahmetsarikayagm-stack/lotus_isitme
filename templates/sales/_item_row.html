@@ -1,0 +1,73 @@
+{% load ui %}
+<div data-item-row
+     x-data="{ removed: {% if form.DELETE.value %}true{% else %}false{% endif %} }" x-show="!removed"
+     class="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+  {{ form.id }}
+  <div class="hidden">{{ form.DELETE }}</div>
+
+  {% if form.non_field_errors %}<p class="mb-3 text-xs font-medium text-red-600">{{ form.non_field_errors.0 }}</p>{% endif %}
+
+  <div class="flex gap-4">
+    {# Seçilen ürünün resmi (alışveriş sitelerindeki gibi solda) #}
+    <div class="shrink-0">
+      <div data-product-thumb title="Ürün seçilince resmi burada görünür"
+           class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-white sm:h-24 sm:w-24">
+        <img data-thumb-img src="" alt="" class="hidden h-full w-full object-contain">
+        <span data-thumb-empty class="text-slate-300">{% icon "archive-box" "w-8 h-8" %}</span>
+      </div>
+    </div>
+    <div class="min-w-0 flex-1">
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-12">
+    <div class="md:col-span-3">
+      <label for="{{ form.category.id_for_label }}" class="mb-1.5 block text-sm font-medium text-slate-700">Kategori <span class="text-brand-600">*</span></label>
+      {{ form.category }}
+      {% for e in form.category.errors %}<p class="mt-1.5 text-xs font-medium text-red-600">{{ e }}</p>{% endfor %}
+    </div>
+    <div class="md:col-span-4">
+      <label for="{{ form.product.id_for_label }}" class="mb-1.5 block text-sm font-medium text-slate-700">Ürün <span class="text-brand-600">*</span></label>
+      {{ form.product }}
+      {% for e in form.product.errors %}<p class="mt-1.5 text-xs font-medium text-red-600">{{ e }}</p>{% endfor %}
+    </div>
+    <div class="md:col-span-1">
+      <label for="{{ form.quantity.id_for_label }}" class="mb-1.5 block text-sm font-medium text-slate-700">Adet</label>
+      {{ form.quantity }}
+      {% for e in form.quantity.errors %}<p class="mt-1.5 text-xs font-medium text-red-600">{{ e }}</p>{% endfor %}
+    </div>
+    <div class="md:col-span-2">
+      <label for="{{ form.unit_price.id_for_label }}" class="mb-1.5 block text-sm font-medium text-slate-700">Birim fiyat <span class="text-brand-600">*</span></label>
+      {{ form.unit_price }}
+      {% for e in form.unit_price.errors %}<p class="mt-1.5 text-xs font-medium text-red-600">{{ e }}</p>{% endfor %}
+    </div>
+    <div class="md:col-span-2">
+      <p class="mb-1.5 text-sm font-medium text-slate-700">Satır toplamı</p>
+      <p data-line-total class="rounded-lg bg-white px-3.5 py-2.5 text-sm font-semibold text-slate-900 ring-1 ring-slate-200">0,00 ₺</p>
+    </div>
+  </div>
+
+  <div class="mt-4 grid grid-cols-1 items-end gap-4 md:grid-cols-12">
+    <div class="md:col-span-3">
+      <label class="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 hover:bg-slate-50">
+        {{ form.institution_right }}
+        <span class="text-sm font-medium text-slate-800">{{ form.institution_right.label }}</span>
+      </label>
+    </div>
+    <div class="md:col-span-3">
+      <label for="{{ form.warranty_end.id_for_label }}" class="mb-1.5 block text-sm font-medium text-slate-700">Garanti bitiş</label>
+      {{ form.warranty_end }}
+      {% for e in form.warranty_end.errors %}<p class="mt-1.5 text-xs font-medium text-red-600">{{ e }}</p>{% endfor %}
+    </div>
+    <div class="md:col-span-3">
+      <label for="{{ form.product_life.id_for_label }}" class="mb-1.5 block text-sm font-medium text-slate-700">Ürün ömrü (yıl)</label>
+      {{ form.product_life }}
+      {% for e in form.product_life.errors %}<p class="mt-1.5 text-xs font-medium text-red-600">{{ e }}</p>{% endfor %}
+    </div>
+    <div class="md:col-span-3 md:text-right">
+      <button type="button" @click="removed = true; $refs.del.checked = true; $dispatch('item-removed')"
+              class="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50">
+        {% icon "trash" "w-4 h-4" %} Satırı sil
+      </button>
+    </div>
+  </div>
+    </div>
+  </div>
+</div>

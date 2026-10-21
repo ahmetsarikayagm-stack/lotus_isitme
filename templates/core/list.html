@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}{{ crud.plural }}{% endblock %}
+{% block page_title %}{{ crud.plural }}{% endblock %}
+
+{% block page_actions %}
+  <a href="{{ create_url }}" class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-3.5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600">
+    {% icon "plus" "w-4 h-4" %}<span class="hidden sm:inline">Yeni {{ crud.singular }}</span><span class="sm:hidden">Ekle</span>
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+
+  {# Arama + filtre #}
+  <form method="get" class="flex flex-wrap items-center gap-3 border-b border-slate-200 p-4">
+    <div class="relative min-w-[14rem] flex-1">
+      <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">{% icon "search" "w-4 h-4" %}</span>
+      <input type="search" name="q" value="{{ q }}" placeholder="{{ crud.search_placeholder }}"
+             class="block w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-9 pr-3 text-sm placeholder-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/25">
+    </div>
+    {% for f in filters %}
+      {% if f.kind == "date" %}
+        <label class="flex items-center gap-2 text-xs font-medium text-slate-500">{{ f.label }}
+          <input type="date" name="{{ f.param }}" value="{{ f.value }}" onchange="this.form.submit()"
+                 class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/25">
+        </label>
+      {% else %}
+        <select name="{{ f.param }}" onchange="this.form.submit()"
+                class="rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-700 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/25">
+          <option value="">{{ f.label }}: Tümü</option>
+          {% for value, label in f.choices %}<option value="{{ value }}" {% if value == f.value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+      {% endif %}
+    {% endfor %}
+    {% if sort %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+    <div class="flex items-center gap-2">
+      <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Ara</button>
+      {% if filters_active %}<a href="{{ request.path }}" class="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100">Temizle</a>{% endif %}
+    </div>
+  </form>
+
+  {# Tablo + toplu işlem #}
+  <form method="post" action="{{ bulk_url }}" x-data="{ ids: [] }"
+        @submit="if (!confirm('Seçili ' + ids.length + ' kayıt silinsin mi?')) $event.preventDefault()">
+    {% csrf_token %}
+
+    <div x-cloak x-show="ids.length" x-transition
+         class="flex items-center justify-between gap-3 border-b border-brand-100 bg-brand-50 px-4 py-2.5">
+      <span class="text-sm font-medium text-brand-800"><span x-text="ids.length"></span> kayıt seçildi</span>
+      <button type="submit" class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-red-700">
+        {% icon "trash" "w-4 h-4" %} Seçilenleri Sil
+      </button>
+    </div>
+
+    {% if rows %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50">
+          <tr>
+            <th class="w-10 px-4 py-3">
+              <input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-brand-500 focus:ring-brand-500"
+                     :checked="ids.length > 0 && ids.length === {{ rows|length }}"
+                     @change='ids = $event.target.checked ? {{ pks_json }} : []'>
+            </th>
+            {% for h in headers %}
+              <th class="whitespace-nowrap px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {% if h.sortable %}
+                  <a href="{{ h.url }}" class="inline-flex items-center gap-1 hover:text-slate-900">
+                    {{ h.label }}
+                    {% if h.direction == "asc" %}<span class="text-brand-600">↑</span>{% elif h.direction == "desc" %}<span class="text-brand-600">↓</span>{% else %}<span class="opacity-30">↕</span>{% endif %}
+                  </a>
+                {% else %}{{ h.label }}{% endif %}
+              </th>
+            {% endfor %}
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for row in rows %}
+            <tr class="transition hover:bg-slate-50" :class="ids.includes('{{ row.pk }}') && 'bg-brand-50/60'">
+              <td class="px-4 py-3">
+                <input type="checkbox" name="ids" value="{{ row.pk }}" x-model="ids"
+                       class="h-4 w-4 rounded border-slate-300 text-brand-500 focus:ring-brand-500">
+              </td>
+              {% for cell in row.cells %}
+                <td class="whitespace-nowrap px-4 py-3 text-slate-700">
+                  {% if cell.link %}<a href="{{ row.edit_url }}" class="font-medium text-slate-900 hover:text-brand-600">{% include "core/_cell.html" %}</a>
+                  {% else %}{% include "core/_cell.html" %}{% endif %}
+                </td>
+              {% endfor %}
+              <td class="whitespace-nowrap px-4 py-3 text-right">
+                {% for a in row.actions %}<a href="{{ a.url }}" {% if a.new_tab %}target="_blank"{% endif %} title="{{ a.title }}"
+                   class="mr-1 inline-flex rounded px-1.5 py-0.5 text-[11px] font-bold {% if a.tone == 'red' %}bg-red-50 text-red-600 hover:bg-red-100{% elif a.tone == 'green' %}bg-emerald-50 text-emerald-700 hover:bg-emerald-100{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">{{ a.label }}</a>{% endfor %}
+                <a href="{{ row.edit_url }}" title="Düzenle" class="inline-flex rounded-lg p-1.5 text-slate-500 hover:bg-brand-50 hover:text-brand-600">{% icon "pencil" "w-4 h-4" %}</a>
+                <a href="{{ row.delete_url }}" title="Sil" class="inline-flex rounded-lg p-1.5 text-slate-500 hover:bg-red-50 hover:text-red-600">{% icon "trash" "w-4 h-4" %}</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <div class="flex flex-col items-center px-6 py-16 text-center">
+        <span class="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">{% icon "inbox" "w-7 h-7" %}</span>
+        <p class="mt-4 font-semibold text-slate-900">Kayıt bulunamadı</p>
+        <p class="mt-1 text-sm text-slate-500">{% if filters_active %}Arama veya filtrelerinizi değiştirmeyi deneyin.{% else %}Henüz kayıt eklenmemiş.{% endif %}</p>
+        <a href="{{ create_url }}" class="mt-5 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600">{% icon "plus" "w-4 h-4" %} Yeni {{ crud.singular }}</a>
+      </div>
+    {% endif %}
+  </form>
+
+  {# Alt bilgi + sayfalama #}
+  <div class="flex flex-col items-center justify-between gap-3 border-t border-slate-200 px-4 py-3 sm:flex-row">
+    <p class="text-sm text-slate-500">Toplam <span class="font-semibold text-slate-700">{{ total }}</span> kayıt{% if page_obj.has_other_pages %} · Sayfa {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}{% endif %}</p>
+    {% if page_obj.has_other_pages %}
+      <nav class="flex items-center gap-1">
+        {% if page_obj.has_previous %}
+          <a href="?{% if qs_nopage %}{{ qs_nopage }}&{% endif %}page={{ page_obj.previous_page_number }}" class="rounded-lg p-2 text-slate-600 hover:bg-slate-100">{% icon "chevron-left" "w-4 h-4" %}</a>
+        {% endif %}
+        {% for p in page_range %}
+          {% if p == page_obj.paginator.ELLIPSIS %}<span class="px-2 text-slate-400">…</span>
+          {% elif p == page_obj.number %}<span class="rounded-lg bg-brand-500 px-3 py-1.5 text-sm font-semibold text-white">{{ p }}</span>
+          {% else %}<a href="?{% if qs_nopage %}{{ qs_nopage }}&{% endif %}page={{ p }}" class="rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100">{{ p }}</a>{% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+          <a href="?{% if qs_nopage %}{{ qs_nopage }}&{% endif %}page={{ page_obj.next_page_number }}" class="rounded-lg p-2 text-slate-600 hover:bg-slate-100">{% icon "chevron-right" "w-4 h-4" %}</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

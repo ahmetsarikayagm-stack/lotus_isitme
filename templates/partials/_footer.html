@@ -1,0 +1,11 @@
+{% if company %}
+<footer class="border-t border-slate-200 bg-white/60 px-4 py-5 text-center text-xs leading-relaxed text-slate-500 sm:px-6 lg:px-8">
+  <p class="font-semibold text-slate-600">{{ company.name }}</p>
+  {% if company.address %}<p>{{ company.address }}</p>{% endif %}
+  <p>
+    {% if company.phone %}<a href="tel:{{ company.phone|cut:' ' }}" class="hover:text-brand-600">{{ company.phone }}</a>{% endif %}
+    {% if company.phone and company.email %}<span class="mx-1 text-slate-300">·</span>{% endif %}
+    {% if company.email %}<a href="mailto:{{ company.email }}" class="hover:text-brand-600">{{ company.email }}</a>{% endif %}
+  </p>
+</footer>
+{% endif %}

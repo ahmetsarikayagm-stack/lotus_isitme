@@ -1,0 +1,7 @@
+{% extends "core/list.html" %}
+{% block page_actions %}
+  {% url 'month_end:year_report_pdf' report_year as pdf_url %}
+  {% url 'month_end:year_report_xlsx' report_year as xlsx_url %}
+  {% include "month_end/_report_buttons.html" with label="Yıllık Rapor" %}
+  {{ block.super }}
+{% endblock %}

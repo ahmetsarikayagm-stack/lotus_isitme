@@ -1,0 +1,39 @@
+{% load ui %}
+<div class="{% if field|is_wide %}sm:col-span-2{% endif %}" {% if field|field_type == "ImageField" %}x-data="{ src: null }"{% endif %}>
+  {% if field|widget_type == "CheckboxInput" %}
+    <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-3.5 hover:bg-slate-50">
+      {{ field }}
+      <span>
+        <span class="text-sm font-medium text-slate-800">{{ field.label }}</span>
+        {% if field.help_text %}<span class="block text-xs text-slate-500">{{ field.help_text }}</span>{% endif %}
+      </span>
+    </label>
+  {% elif field|widget_type == "CheckboxSelectMultiple" %}
+    <p class="mb-1.5 text-sm font-medium text-slate-700">{{ field.label }}</p>
+    <div class="grid max-h-72 grid-cols-1 gap-2 overflow-y-auto rounded-lg border border-slate-200 p-3 sm:grid-cols-2 lg:grid-cols-3">
+      {% for w in field %}<label class="flex items-start gap-2 text-sm text-slate-700">{{ w.tag }}<span>{{ w.choice_label }}</span></label>{% endfor %}
+    </div>
+    {% if field.help_text %}<p class="mt-1.5 text-xs text-slate-500">{{ field.help_text }}</p>{% endif %}
+  {% else %}
+    <label for="{{ field.id_for_label }}" class="mb-1.5 block text-sm font-medium text-slate-700">
+      {{ field.label }}{% if field.field.required %}<span class="text-brand-600"> *</span>{% endif %}
+    </label>
+    {% if field|widget_type == "FileInput" %}
+      {% if field.initial %}
+        <div class="mb-2 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-sm">
+          {% if field|field_type == "ImageField" %}<img src="{{ field.initial.url }}" alt="" class="h-12 w-auto max-w-[8rem] rounded-lg bg-white object-contain">{% endif %}
+          <a href="{{ field.initial.url }}" target="_blank" class="inline-flex items-center gap-1.5 truncate text-brand-600 hover:underline">
+            {% icon "paper-clip" "w-4 h-4" %} {{ field.initial.name|basename }}
+          </a>
+          <span class="ml-auto text-xs text-slate-400">Mevcut dosya</span>
+        </div>
+      {% endif %}
+      {% if field|field_type == "ImageField" %}
+        <img x-show="src" x-cloak :src="src" alt="Önizleme" class="mb-2 h-56 w-56 max-w-full rounded-xl border border-slate-200 bg-white object-contain">
+      {% endif %}
+    {% endif %}
+    {{ field }}
+    {% if field.help_text %}<p class="mt-1.5 text-xs text-slate-500">{{ field.help_text }}</p>{% endif %}
+  {% endif %}
+  {% for error in field.errors %}<p class="mt-1.5 text-xs font-medium text-red-600">{{ error }}</p>{% endfor %}
+</div>

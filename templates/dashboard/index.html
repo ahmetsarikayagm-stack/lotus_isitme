@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load ui %}
+{% block title %}Grafikler{% endblock %}
+{% block page_title %}Grafikler{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  {# KPI kartları #}
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+    {% for k in kpis %}
+      <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="flex items-start justify-between">
+          <p class="text-sm font-medium text-slate-500">{{ k.label }}</p>
+          <span class="flex h-9 w-9 items-center justify-center rounded-lg
+            {% if k.tone == 'brand' %}bg-brand-100 text-brand-600{% elif k.tone == 'emerald' %}bg-emerald-100 text-emerald-600
+            {% elif k.tone == 'sky' %}bg-sky-100 text-sky-600{% elif k.tone == 'amber' %}bg-amber-100 text-amber-600
+            {% elif k.tone == 'rose' %}bg-rose-100 text-rose-600{% else %}bg-violet-100 text-violet-600{% endif %}">
+            {% icon k.icon "w-5 h-5" %}
+          </span>
+        </div>
+        <p class="mt-3 text-2xl font-bold tracking-tight text-slate-900">{{ k.value }}</p>
+        <p class="mt-1 text-xs text-slate-500">{{ k.hint }}</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  {# Grafikler #}
+  <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-2">
+      <h2 class="font-semibold text-slate-900">Aylık Satış Cirosu</h2>
+      <p class="text-xs text-slate-500">Son 12 ay</p>
+      <div class="relative mt-4 h-72"><canvas id="chart-revenue"></canvas></div>
+    </section>
+    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 class="font-semibold text-slate-900">Ödeme Yöntemi Dağılımı</h2>
+      <p class="text-xs text-slate-500">Son 12 ay, ciroya göre</p>
+      <div class="relative mt-4 h-72"><canvas id="chart-payments"></canvas></div>
+    </section>
+    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm xl:col-span-2">
+      <h2 class="font-semibold text-slate-900">Gider ve Kâr / Zarar</h2>
+      <p class="text-xs text-slate-500">Ay sonu kayıtlarına göre</p>
+      <div class="relative mt-4 h-72"><canvas id="chart-profit"></canvas></div>
+    </section>
+    <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 class="font-semibold text-slate-900">En Çok Satan Markalar</h2>
+      <p class="text-xs text-slate-500">Son 12 ay, adet</p>
+      <div class="relative mt-4 h-72"><canvas id="chart-brands"></canvas></div>
+    </section>
+  </div>
+
+  {# Listeler #}
+  <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+    <section class="rounded-xl border border-slate-200 bg-white shadow-sm xl:col-span-2">
+      <header class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+        <h2 class="font-semibold text-slate-900">Son Satışlar</h2>
+        <a href="{% url 'sales:list' %}" class="text-sm font-medium text-brand-600 hover:underline">Tümü</a>
+      </header>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-100 text-sm">
+          <tbody class="divide-y divide-slate-100">
+            {% for s in recent_sales %}
+              <tr class="hover:bg-slate-50">
+                <td class="whitespace-nowrap px-5 py-3 text-slate-500">{{ s.sale_date|date:"d.m.Y" }}</td>
+                <td class="px-5 py-3 font-medium text-slate-900">{{ s.patient }}</td>
+                <td class="px-5 py-3 text-slate-600">{{ s.items_summary }}</td>
+                <td class="whitespace-nowrap px-5 py-3 text-right font-semibold text-slate-900">{{ s.total|floatformat:"2g" }} ₺</td>
+              </tr>
+            {% empty %}
+              <tr><td class="px-5 py-10 text-center text-slate-400">Henüz satış yok.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <header class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+        <h2 class="font-semibold text-slate-900">Azalan Stoklar</h2>
+        <a href="{% url 'stocks:list' %}?stok=2" class="text-sm font-medium text-brand-600 hover:underline">Tümü</a>
+      </header>
+      <ul class="divide-y divide-slate-100">
+        {% for st in low_stock %}
+          <li class="flex items-center justify-between px-5 py-3 text-sm">
+            <span class="text-slate-800">{{ st }}</span>
+            <span class="inline-flex min-w-[2rem] justify-center rounded-full px-2.5 py-0.5 text-xs font-semibold {% if st.quantity == 0 %}bg-red-100 text-red-700{% else %}bg-amber-100 text-amber-700{% endif %}">{{ st.quantity }}</span>
+          </li>
+        {% empty %}
+          <li class="px-5 py-10 text-center text-sm text-slate-400">Azalan stok yok.</li>
+        {% endfor %}
+      </ul>
+    </section>
+  </div>
+</div>
+
+{{ charts|json_script:"chart-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const d = JSON.parse(document.getElementById("chart-data").textContent);
+    const BRAND = "#EF7B18", BRAND_LIGHT = "#F8AB6A", SLATE = "#334155";
+    const PALETTE = [BRAND, "#0EA5E9", "#10B981", "#8B5CF6", "#F59E0B", "#64748B"];
+    const tl = (v) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 0 }).format(v) + " ₺";
+    Chart.defaults.font.family = "Inter, ui-sans-serif, system-ui, sans-serif";
+    Chart.defaults.color = "#64748B";
+    const base = { responsive: true, maintainAspectRatio: false };
+    const tip = { callbacks: { label: (c) => " " + (c.dataset.label ? c.dataset.label + ": " : "") + tl(c.parsed.y ?? c.parsed) } };
+
+    new Chart(document.getElementById("chart-revenue"), {
+      type: "bar",
+      data: { labels: d.revenue.labels, datasets: [{ label: "Ciro", data: d.revenue.values, backgroundColor: BRAND, borderRadius: 6, maxBarThickness: 36 }] },
+      options: { ...base, plugins: { legend: { display: false }, tooltip: tip }, scales: { y: { beginAtZero: true, ticks: { callback: tl } }, x: { grid: { display: false } } } },
+    });
+
+    new Chart(document.getElementById("chart-payments"), {
+      type: "doughnut",
+      data: { labels: d.payments.labels, datasets: [{ data: d.payments.values, backgroundColor: PALETTE, borderWidth: 0 }] },
+      options: { ...base, cutout: "62%", plugins: { legend: { position: "bottom" }, tooltip: { callbacks: { label: (c) => " " + c.label + ": " + tl(c.parsed) } } } },
+    });
+
+    new Chart(document.getElementById("chart-profit"), {
+      type: "line",
+      data: {
+        labels: d.profit.labels,
+        datasets: [
+          { label: "Gider", data: d.profit.expense, borderColor: SLATE, backgroundColor: SLATE, tension: 0.3 },
+          { label: "Kâr / Zarar", data: d.profit.profit, borderColor: BRAND, backgroundColor: BRAND_LIGHT, tension: 0.3, fill: false },
+        ],
+      },
+      options: { ...base, interaction: { mode: "index", intersect: false }, plugins: { legend: { position: "bottom" }, tooltip: tip }, scales: { y: { ticks: { callback: tl } }, x: { grid: { display: false } } } },
+    });
+
+    new Chart(document.getElementById("chart-brands"), {
+      type: "bar",
+      data: { labels: d.brands.labels, datasets: [{ label: "Adet", data: d.brands.values, backgroundColor: PALETTE, borderRadius: 6 }] },
+      options: { ...base, indexAxis: "y", plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { precision: 0 } }, y: { grid: { display: false } } } },
+    });
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load ui static %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_actions %}
+  <a href="{{ cancel_url }}" class="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100">
+    {% icon "arrow-left" "w-4 h-4" %}<span class="hidden sm:inline">Listeye dön</span>
+  </a>
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" novalidate class="mx-auto max-w-5xl space-y-6">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      {% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}
+    </div>
+  {% endif %}
+
+  {% include "core/_audit_info.html" %}
+
+  {% block before_cards %}{% endblock %}
+
+  {% for card in cards %}
+    <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+      <header class="border-b border-slate-100 px-6 py-4">
+        <h2 class="text-base font-semibold text-slate-900">{{ card.title }}</h2>
+        {% if card.description %}<p class="mt-0.5 text-sm text-slate-500">{{ card.description }}</p>{% endif %}
+      </header>
+      <div class="grid grid-cols-1 gap-5 p-6 {% if card.columns == 2 %}sm:grid-cols-2{% endif %}">
+        {% for field in card.fields %}{% include "core/_field.html" %}{% endfor %}
+      </div>
+    </section>
+  {% endfor %}
+
+  {% block extra_cards %}{% endblock %}
+
+  {% block form_actions %}
+  <div class="flex items-center justify-end gap-3 pb-6">
+    <a href="{{ cancel_url }}" class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Vazgeç</a>
+    <button type="submit" class="rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2">Kaydet</button>
+  </div>
+  {% endblock %}
+</form>
+{% block after_form %}{% endblock %}
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/cascade.js' %}" defer></script>{% endblock %}

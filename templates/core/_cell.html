@@ -1,0 +1,14 @@
+{% load ui %}{% if cell.value is None %}<span class="text-slate-300">—</span>
+{% elif cell.kind == "money" %}{{ cell.value|floatformat:"2g" }} ₺
+{% elif cell.kind == "profit" %}<span class="font-semibold {% if cell.value < 0 %}text-red-600{% else %}text-emerald-600{% endif %}">{{ cell.value|floatformat:"2g" }} ₺</span>
+{% elif cell.kind == "status" %}{% if cell.value %}<span class="inline-flex items-center rounded-full bg-slate-900 px-2.5 py-0.5 text-xs font-semibold text-white">Kapalı</span>{% else %}<span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200">Açık</span>{% endif %}
+{% elif cell.kind == "date" %}{{ cell.value|date:"d.m.Y" }}
+{% elif cell.kind == "datetime" %}{{ cell.value|date:"d.m.Y H:i" }}
+{% elif cell.kind == "bool" %}{% if cell.value %}<span class="inline-flex text-emerald-600">{% icon "check" "w-5 h-5" %}</span>{% else %}<span class="text-slate-300">—</span>{% endif %}
+{% elif cell.kind == "image" %}<img src="{{ cell.value.url }}" alt="" class="h-10 w-10 rounded-lg border border-slate-200 object-cover">
+{% elif cell.kind == "logo" %}<img src="{{ cell.value.url }}" alt="" class="h-8 w-auto max-w-[96px] rounded object-contain">
+{% elif cell.kind == "brand" %}<span class="inline-flex items-center gap-2">{% if cell.value.logo %}<img src="{{ cell.value.logo.url }}" alt="" class="h-6 w-auto max-w-[64px] rounded object-contain">{% endif %}<span>{{ cell.value.name }}</span></span>
+{% elif cell.kind == "file" %}<a href="{{ cell.value.url }}" target="_blank" class="inline-flex items-center gap-1 text-brand-600 hover:underline">{% icon "paper-clip" "w-4 h-4" %} Dosya</a>
+{% elif cell.kind == "qty" %}<span class="inline-flex min-w-[2rem] justify-center rounded-full px-2.5 py-0.5 text-xs font-semibold {% if cell.value == 0 %}bg-red-100 text-red-700{% elif cell.value <= 2 %}bg-amber-100 text-amber-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">{{ cell.value }}</span>
+{% elif cell.kind == "badge" %}<span class="inline-flex min-w-[2rem] justify-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">{{ cell.value }}</span>
+{% else %}{{ cell.value }}{% endif %}

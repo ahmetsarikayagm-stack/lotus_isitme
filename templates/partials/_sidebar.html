@@ -1,0 +1,31 @@
+{% load static ui %}
+<div class="flex h-full flex-col bg-slate-900">
+  {# Logo bloğu: marka turuncusu üzerinde beyaz Lotus logosu #}
+  <a href="{% url 'dashboard:index' %}" class="flex items-center justify-center bg-brand-500 px-6 py-5">
+    <img src="{% static 'img/logo-white.png' %}" alt="Lotus İşitme Cihazları" class="h-16 w-auto">
+  </a>
+
+  <nav class="flex-1 space-y-6 overflow-y-auto px-3 py-5">
+    {% for section in sidebar_menu %}
+      <div>
+        <p class="px-3 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-500">{{ section.title }}</p>
+        <ul class="space-y-1">
+          {% for item in section.items %}
+            <li>
+              <a href="{{ item.url }}"
+                 class="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition
+                        {% if item.active %}bg-brand-500 text-white shadow-sm{% else %}text-slate-300 hover:bg-slate-800 hover:text-white{% endif %}">
+                {% icon item.icon "w-5 h-5 shrink-0" %}
+                <span>{{ item.label }}</span>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+  </nav>
+
+  <div class="border-t border-slate-800 px-5 py-4 text-xs text-slate-500">
+    Lotus İşitme Ankara<br>Stok &amp; Hasta Yönetimi
+  </div>
+</div>

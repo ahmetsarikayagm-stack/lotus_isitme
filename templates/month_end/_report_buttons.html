@@ -1,0 +1,8 @@
+{# Her zaman görünür rapor düğmeleri. Gerekli: label, pdf_url, xlsx_url #}
+<div class="inline-flex items-stretch overflow-hidden rounded-lg border border-slate-300 bg-white text-sm font-semibold shadow-sm">
+  <span class="flex items-center border-r border-slate-200 bg-slate-50 px-3 text-slate-500">{{ label }}</span>
+  <a href="{{ pdf_url }}" target="_blank" title="PDF olarak aç / yazdır"
+     class="px-3.5 py-2 text-red-600 hover:bg-red-50">PDF</a>
+  <a href="{{ xlsx_url }}" title="Excel dosyası olarak indir"
+     class="border-l border-slate-200 px-3.5 py-2 text-emerald-700 hover:bg-emerald-50">Excel</a>
+</div>

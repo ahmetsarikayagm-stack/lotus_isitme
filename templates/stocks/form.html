@@ -1,0 +1,77 @@
+{% extends "core/form.html" %}
+{% load ui %}
+
+{% block before_cards %}
+{% if is_edit and form.instance.image %}
+<section class="rounded-xl border border-slate-200 bg-white shadow-sm"
+         x-data="{
+           zoom: false, open: false, x: 50, y: 50,
+           move(e) {
+             const r = this.$refs.box.getBoundingClientRect();
+             this.x = Math.min(100, Math.max(0, (e.clientX - r.left) / r.width * 100));
+             this.y = Math.min(100, Math.max(0, (e.clientY - r.top) / r.height * 100));
+           }
+         }"
+         @keydown.escape.window="open = false">
+  <div class="grid gap-8 p-6 md:grid-cols-5">
+
+    {# Büyük ürün görseli: üzerine gelince yakınlaşır, tıklayınca tam ekran açılır #}
+    <div class="md:col-span-3">
+      <div x-ref="box"
+           class="relative aspect-square max-h-[32rem] w-full cursor-zoom-in overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
+           @mouseenter="zoom = true" @mouseleave="zoom = false" @mousemove="move($event)" @click="open = true">
+        <img src="{{ form.instance.image.url }}" alt="{{ form.instance }}"
+             class="h-full w-full object-contain transition-transform duration-150 ease-out"
+             :style="zoom ? 'transform: scale(2.2); transform-origin: ' + x + '% ' + y + '%' : ''">
+        <span x-show="!zoom" class="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/70 px-3 py-1 text-xs font-medium text-white">
+          Yakınlaştırmak için üzerine gelin · Büyütmek için tıklayın
+        </span>
+      </div>
+    </div>
+
+    {# Ürün özeti #}
+    <div class="md:col-span-2">
+      {% if form.instance.brand.logo %}<img src="{{ form.instance.brand.logo.url }}" alt="{{ form.instance.brand }}" class="mb-3 h-10 w-auto max-w-[10rem] rounded-lg object-contain">{% endif %}
+      <p class="text-xs font-semibold uppercase tracking-wide text-brand-600">{{ form.instance.category }}</p>
+      <h2 class="mt-1 text-2xl font-bold tracking-tight text-slate-900">{{ form.instance.brand }} {{ form.instance.model }}</h2>
+      <p class="mt-4 text-3xl font-bold text-slate-900">{{ form.instance.price|floatformat:"2g" }} ₺</p>
+
+      <dl class="mt-6 divide-y divide-slate-100 text-sm">
+        <div class="flex items-center justify-between py-2.5">
+          <dt class="text-slate-500">Stok adedi</dt>
+          <dd><span class="inline-flex min-w-[2rem] justify-center rounded-full px-2.5 py-0.5 text-xs font-semibold {% if form.instance.quantity == 0 %}bg-red-100 text-red-700{% elif form.instance.is_low %}bg-amber-100 text-amber-700{% else %}bg-emerald-100 text-emerald-700{% endif %}">{{ form.instance.quantity }}</span></dd>
+        </div>
+        <div class="flex items-center justify-between py-2.5">
+          <dt class="text-slate-500">Eklenme tarihi</dt>
+          <dd class="font-medium text-slate-800">{{ form.instance.created_at|date:"d.m.Y" }}</dd>
+        </div>
+        {% if form.instance.created_by %}
+        <div class="flex items-center justify-between py-2.5">
+          <dt class="text-slate-500">Ekleyen</dt>
+          <dd class="font-medium text-slate-800">{{ form.instance.created_by.display_name }}</dd>
+        </div>
+        {% endif %}
+      </dl>
+
+      {% if form.instance.description %}
+        <p class="mt-4 text-sm leading-relaxed text-slate-600">{{ form.instance.description|truncatechars:220 }}</p>
+      {% endif %}
+      <p class="mt-6 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
+        Resmi değiştirmek için aşağıdaki <strong>Görsel &amp; Açıklama</strong> bölümünden yeni dosya seçip kaydedin.
+      </p>
+    </div>
+  </div>
+
+  {# Tam ekran görüntüleyici #}
+  <div x-cloak x-show="open" x-transition.opacity @click="open = false"
+       class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/85 p-4 sm:p-10" role="dialog" aria-modal="true">
+    <button type="button" @click="open = false"
+            class="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20">
+      {% icon "x-mark" "w-6 h-6" %}<span class="sr-only">Kapat</span>
+    </button>
+    <img src="{{ form.instance.image.url }}" alt="{{ form.instance }}" @click.stop
+         class="max-h-full max-w-full rounded-lg bg-white object-contain shadow-2xl">
+  </div>
+</section>
+{% endif %}
+{% endblock %}

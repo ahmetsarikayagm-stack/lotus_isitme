@@ -1,0 +1,12 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+{% block extrastyle %}{{ block.super }}
+<link rel="icon" href="{% static 'img/favicon.ico' %}">
+<style>
+  :root { --primary: #D9660C; --secondary: #EF7B18; --accent: #F8AB6A; --header-bg: #EF7B18; --header-color: #fff; --header-branding-color: #fff; --link-fg: #B4510C; --link-hover-color: #8F4012; }
+  #site-name img { height: 38px; vertical-align: middle; }
+</style>
+{% endblock %}
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}"><img src="{% static 'img/logo-white.png' %}" alt="Lotus İşitme"></a></div>
+{% endblock %}

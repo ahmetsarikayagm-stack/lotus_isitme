@@ -1,0 +1,6 @@
+{% if is_edit and form.instance.created_at %}
+<div class="flex flex-wrap items-center gap-x-6 gap-y-1 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs text-slate-500">
+  <span>Oluşturan: <strong class="font-semibold text-slate-700">{{ form.instance.created_by.display_name|default:"—" }}</strong> · {{ form.instance.created_at|date:"d.m.Y H:i" }}</span>
+  <span>Son işlem: <strong class="font-semibold text-slate-700">{{ form.instance.last_actor.display_name|default:"—" }}</strong> · {{ form.instance.updated_at|date:"d.m.Y H:i" }}</span>
+</div>
+{% endif %}
