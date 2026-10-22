@@ -6,11 +6,13 @@ import environ
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(DEBUG=(bool, True))
-environ.Env.read_env(BASE_DIR / ".env")
+
+env_file = BASE_DIR / ".env"
+if env_file.exists():
+    environ.Env.read_env(env_file)
 
 # ------------------------------------------------------------------ Güvenlik
-# Güvenlik ayarları şimdilik geliştirme modunda (production sertleştirmesi sonra yapılacak).
-DEBUG = env("DEBUG")
+DEBUG = env.bool("DEBUG", default=False)
 SECRET_KEY = env("SECRET_KEY", default="dev-secret-key-degistir-sonra")
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["*"])
@@ -82,14 +84,15 @@ TEMPLATES = [
     },
 ]
 
-# ------------------------------------------------------------------ Veritabanı
-# DATABASE_URL boşsa SQLite; PostgreSQL için: postgres://user:pass@host:5432/db
+# ------------------------------------------------------------------ Veritabanı (Supabase / SQLite)
 DATABASES = {
-    "default": env.db(
-        "DATABASE_URL",
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-    )
-}
+     "default": env.db(
+         "DATABASE_URL",
+         default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+     )
+ }
+# ------------------------------------------------------------------ Veritabanı (Geçici Supabase Bağlantısı)
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ------------------------------------------------------------------ Kimlik doğrulama
@@ -128,7 +131,6 @@ STORAGES = {
     "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
 }
 
-# Yükleme limitleri (odyo / rapor dosyaları için)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 
@@ -137,7 +139,6 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "tailwind"
 CRISPY_TEMPLATE_PACK = "tailwind"
 
 # ------------------------------------------------------------------ Firma bilgileri
-# Tüm sayfaların ve PDF / Excel raporlarının alt bilgisinde (footer) görünür.
 COMPANY_NAME = "Lotus İşitme Cihazları"
 COMPANY_ADDRESS = "Fidan Mahallesi, Mithatpaşa Cd. No:33 D:1, 06946 Çankaya/Ankara"
 COMPANY_PHONE = "0553 111 11 06"
